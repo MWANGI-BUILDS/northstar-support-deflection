@@ -23,11 +23,50 @@ Quick start (local demo)
    python app.py
 
 4. Demo via curl
-   Order status:
-   curl -s -X POST http://localhost:5000/chat -H 'Content-Type: application/json' -d '{"message":"Where is my order #1001?"}' | jq
 
-   Returns:
-   curl -s -X POST http://localhost:5000/chat -H 'Content-Type: application/json' -d '{"message":"How do I return order #1001?"}' | jq
+Order status (shipped):
+curl -s -X POST http://localhost:5000/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Where is my order #1001?"}' | jq
+
+Expected sample reply (demo mock):
+{
+  "reply": "Order 1001 shipped via FastShip. Tracking: FS123456789.",
+  "confidence": 0.85,
+  "data": {
+    "order_id": "1001",
+    "status": "shipped",
+    "tracking": "FS123456789",
+    "carrier": "FastShip",
+    "items": [
+      {"sku": "TS-RED-M", "name": "T-Shirt Red M", "returnable_until": "2026-09-09"}
+    ]
+  }
+}
+
+Order status (processing):
+curl -s -X POST http://localhost:5000/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Has order #1002 shipped yet?"}' | jq
+
+Expected sample reply (demo mock):
+{
+  "reply": "Order 1002 is processing. Estimated ship date: 2026-08-15.",
+  "confidence": 0.8,
+  "data": { "order_id": "1002", "status": "processing" }
+}
+
+Returns/refunds:
+curl -s -X POST http://localhost:5000/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"How do I return order #1001?"}' | jq
+
+Expected sample reply (demo mock):
+{
+  "reply": "Items:\n- T-Shirt Red M (SKU TS-RED-M): returnable\n\nReturn steps:\nLog into your account → Orders → Select the order → Choose 'Return item'.\nPrint the pre-paid label or bring to a drop-off point.\nShip the item; once we receive it, refunds process in 5-10 business days.\nEstimated refund completion by ~2026-08-20.",
+  "confidence": 0.85,
+  "data": { "order_id": "1001", "items": [ {"sku":"TS-RED-M"} ] }
+}
 
 Preparing the Git history & push (one commit per Charter task)
 - This repo includes scripts/push_commits.sh which will:
