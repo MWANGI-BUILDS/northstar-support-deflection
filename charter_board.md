@@ -22,14 +22,18 @@
 ## 5. Roles
 - **Repo/board owner:** Michael
 - **Audit log compiler (Day 5):** Esther
-- **Go-live note author:** Sandisiwe
+- **Go-live note author:** Ann
 
 ## 6. Signatures
 | Name | Role | Agreed |
 |Victor|Charterboard|Yes|
+
 |Sandisiwe|Prototype Testing |Yes|
+
 |Ann|Prototype Working Report |Yes|
+
 |Esther|Audit Log |Yes |
+
 |Michael|Set up Github repo|Yes|
 
 # Project Board
