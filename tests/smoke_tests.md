@@ -3,6 +3,7 @@ QA Testing Log — Northstar Support Chatbot Prototype
 Tested By: QA Testing Lead  
 Date: August 13, 2026  
 Goal: Verify that the customer service chatbot correctly answers order questions, handles product returns, checks stock levels, and routes complex issues to human support.
+Scope: Priority Focus on Order Status and Stock Availability (Returns supported as optional deflection flow)
 
 Core Flow Verification
 
