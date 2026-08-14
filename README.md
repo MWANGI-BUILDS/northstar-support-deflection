@@ -91,7 +91,3 @@ After push:
 
 Security:
 - Do not commit real credentials. Use GitHub Secrets or environment variables on your runner.
-
-If you want, I can:
-- Walk you through running the push script, or
-- After you push, fetch the branch and verify the commit history and produce the final audit CSV for you.

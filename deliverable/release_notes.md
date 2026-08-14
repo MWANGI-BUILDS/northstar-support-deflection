@@ -45,6 +45,4 @@ Option B: Using the GitHub REST API (curl)
      -d '{"tag_name":"v1.0.0","target_commitish":"feature/support-deflection-mvp","name":"Support Deflection MVP v1.0.0","body":"See deliverable/release_notes.md","draft":false,"prerelease":false}' \
      https://api.github.com/repos/MWANGI-BUILDS/northstar-support-deflection/releases
 2) The response will include an upload_url. Use it to upload the zip (replace {upload_url} and $GITHUB_TOKEN):
-   curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/zip" --data-binary @northstar-support-deflection-feature-support-deflection-mvp.zip "{upload_url}?name=northstar-support-deflection-feature-support-deflection-mvp.zip"
-
-If you want, I can run the release creation and upload for you, but I need permission to perform repository writes from this interface. Otherwise, run the gh commands above and the release will be created with the branch and zip attached.
+   curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/zip" --data-binary @northstar-support-deflection-feature-support-deflection-mvp.zip "{upload_url}?name=northstar-support-deflection-feature-support-deflection-mvp.zip
