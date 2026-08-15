@@ -33,4 +33,4 @@ Minimum effort to go-live (estimate)
 - Integration + Auth + logging + ticketing webhook: ~2–3 developer-weeks + 1 week testing & CS training.
 
 Contact for handover
-- Michael (PM/Lead): michael@example.com
+- ann (PM/Lead):ann11mwangi@gmail.com
