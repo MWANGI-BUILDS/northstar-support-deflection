@@ -1,11 +1,11 @@
 
 ## 1. Team & Product Decision
-- **Team name:** Group 4
+- **Team name:**
 - **Approach:** Github prototype
 - **Ticket types covered:** Order Status, Stock Availability
 
 ## 2. Communication
-- **Primary channel:** Github
+- **Primary channel:** Whatsapp
 - **Expected response time:** Working hours
 - **Daily check-in time:** Working hours
 - Everyone posts a short daily update: what I did, what's next, blockers.
