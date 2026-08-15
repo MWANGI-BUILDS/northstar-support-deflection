@@ -1,6 +1,6 @@
 
 ## 1. Team & Product Decision
-- **Team name:**
+- **Team name:** Jasiri Scripts
 - **Approach:** Github prototype
 - **Ticket types covered:** Order Status, Stock Availability
 
