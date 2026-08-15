@@ -6,6 +6,7 @@ Contents:
 - config/.env.example — environment variables
 - charter_board.md, go_live_note.md, audit_log_template.csv — deliverables
 - scripts/ — helper scripts to create branch and per-task commits, and to generate the audit CSV
+- index.html
 
 Important notes:
 - No secrets are committed. Provide credentials via environment variables or GitHub Secrets.
