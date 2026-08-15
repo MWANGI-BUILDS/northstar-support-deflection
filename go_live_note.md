@@ -6,6 +6,7 @@ What works (demo-validated)
 - Demoable end-to-end locally via POST /chat (see README).
 
 Known / accepted limitations (what's broken)
+The regex matcher (/NS-\d{5}/) ignores raw numbers, causing the bot to trigger the unmatched main-menu fallback.
 - No authentication: Prototype uses demo mock data when ORDERS_API_BASE_URL is not set.
 - No production Orders/Returns API integration by default — connectors are templates.
 - No rate-limiting, session/context store, or advanced NLU.
