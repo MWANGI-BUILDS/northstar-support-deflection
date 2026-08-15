@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Northstar Retail — Support Deflection MVP</title>
+<style>
+  :root{
+    --ink:#1b1f23;
+    --paper:#f6f4ef;
+    --panel:#ffffff;
+    --line:#e2ddd1;
+    --route:#2c6e5f;   /* order status */
+    --refund:#a1592e;  /* returns */
+    --stock:#3b5b8c;   /* stock */
+    --muted:#6b6558;
+    --bot-bg:#eef0e9;
+    --user-bg:#1b1f23;
+    --user-fg:#f6f4ef;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Courier New', ui-monospace, Menlo, monospace;
+    background:var(--paper);
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:28px 16px;
+  }
+  .app{
+    width:100%;
+    max-width:720px;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:12px;
+    margin-bottom:6px;
+  }
+  header h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size:22px;
+    letter-spacing:0.5px;
+    margin:0;
+  }
+  header .tag{
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+  }
+  .status-strip{
+    display:flex;
+    gap:6px;
+    margin:10px 0 16px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .pill{
+    padding:4px 9px;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:var(--panel);
+    color:var(--muted);
+  }
+  .pill.active{ color:var(--paper); border-color:transparent; }
+  .pill.route{background:var(--route); }
+  .pill.refund{background:var(--refund); }
+  .pill.stock{background:var(--stock); }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:3px;
+  }
+  .thread{
+    height:400px;
+    overflow-y:auto;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .msg{
+    max-width:85%;
+    padding:9px 12px;
+    border-radius:3px;
+    font-size:13.5px;
+    line-height:1.5;
+    white-space:pre-wrap;
+  }
+  .msg.bot{
+    background:var(--bot-bg);
+    align-self:flex-start;
+    border-left:3px solid var(--muted);
+  }
+  .msg.bot.route{border-left-color:var(--route);}
+  .msg.bot.refund{border-left-color:var(--refund);}
+  .msg.bot.stock{border-left-color:var(--stock);}
+  .msg.user{
+    background:var(--user-bg);
+    color:var(--user-fg);
+    align-self:flex-end;
+  }
+  .msg .label{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    opacity:0.6;
+    margin-bottom:3px;
+  }
+  form.inputbar{
+    display:flex;
+    border-top:1px solid var(--line);
+  }
+  input[type=text]{
+    flex:1;
+    border:none;
+    padding:12px 14px;
+    font-family:inherit;
+    font-size:13.5px;
+    background:transparent;
+    outline:none;
+  }
+  button{
+    font-family:inherit;
+    border:none;
+    background:var(--ink);
+    color:var(--paper);
+    padding:0 20px;
+    cursor:pointer;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  button:hover{opacity:0.85;}
+  .quick{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    padding:10px 16px 14px;
+    border-top:1px dashed var(--line);
+  }
+  .quick button{
+    background:var(--panel);
+    color:var(--ink);
+    border:1px solid var(--line);
+    padding:6px 10px;
+    border-radius:2px;
+    font-size:11px;
+    text-transform:none;
+    letter-spacing:0;
+  }
+  .quick button:hover{ background:var(--bot-bg); }
+  footer{
+    margin-top:14px;
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+  }
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Northstar Retail — Support Deflection MVP</h1>
+    </div>
+    <span class="tag">Prototype · The Northstar Sprint</span>
+  </header>
+
+  <div class="status-strip">
+    <span class="pill route" id="pill-route">Order Status</span>
+    <span class="pill refund" id="pill-refund">Returns &amp; Refunds</span>
+    <span class="pill stock" id="pill-stock">Stock Availability</span>
+  </div>
+
+  <div class="panel">
+    <div class="thread" id="thread"></div>
+    <div class="quick" id="quick"></div>
+    <form class="inputbar" id="form">
+      <input type="text" id="input" placeholder="Try: 'where is order NR1042' or 'is the Trail Runner back in stock in size 9'" autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <footer>
+    Mock data only — no live Northstar systems connected. Built for demo purposes as part of the Support Deflection MVP.
+  </footer>
+</div>
+
+<script>
+/* =========================================================
+   MOCK DATA
+   Owners (per project board):
+   - orders.js content   -> Victor  (T3)
+   - stock.js content    -> Sandisiwe (T4)
+   ========================================================= */
+
+const ORDERS = {
+  "NR1001": { status: "delivered",  item: "Coastal Rain Jacket",  placed: "2026-08-01", delivered: "2026-08-05", carrier: "SpeedPost", tracking: "SP998211KE" },
+  "NR1002": { status: "shipped",    item: "Trail Runner Sneakers (Size 9)", placed: "2026-08-10", shipped: "2026-08-12", eta: "2026-08-17", carrier: "SwiftLine", tracking: "SL44210KE" },
+  "NR1003": { status: "processing", item: "Ceramic Pour-Over Set", placed: "2026-08-14", eta: "2026-08-19" },
+  "NR1004": { status: "delayed",    item: "Wool Overcoat (M)", placed: "2026-07-28", shipped: "2026-08-02", eta: "2026-08-09", note: "Held at regional hub — customs recheck", carrier: "SpeedPost", tracking: "SP112245KE" },
+  "NR1005": { status: "delivered",  item: "Everyday Backpack", placed: "2026-07-20", delivered: "2026-07-25", carrier: "SwiftLine", tracking: "SL10022KE" },
+  "NR1006": { status: "shipped",    item: "Trail Runner Sneakers (Size 11)", placed: "2026-08-13", shipped: "2026-08-14", eta: "2026-08-18", carrier: "SwiftLine", tracking: "SL44399KE" },
+  "NR1007": { status: "cancelled",  item: "Desk Lamp — Walnut", placed: "2026-08-09", note: "Cancelled at customer request on 2026-08-10" },
+  "NR1042": { status: "shipped",    item: "Ceramic Pour-Over Set", placed: "2026-08-11", shipped: "2026-08-13", eta: "2026-08-17", carrier: "SpeedPost", tracking: "SP778821KE" }
+};
+
+const STOCK = {
+  "trail runner": { name: "Trail Runner Sneakers", sizes: { "8": 0, "9": 12, "10": 5, "11": 0 }, restockEta: "2026-08-22" },
+  "coastal rain jacket": { name: "Coastal Rain Jacket", sizes: { "s": 3, "m": 0, "l": 6, "xl": 2 }, restockEta: "2026-08-20" },
+  "everyday backpack": { name: "Everyday Backpack", sizes: { "onesize": 18 }, restockEta: null },
+  "wool overcoat": { name: "Wool Overcoat", sizes: { "s": 0, "m": 0, "l": 1 }, restockEta: "2026-09-01" },
+  "ceramic pour-over set": { name: "Ceramic Pour-Over Set", sizes: { "onesize": 0 }, restockEta: "2026-08-16" },
+  "desk lamp": { name: "Desk Lamp — Walnut", sizes: { "onesize": 9 }, restockEta: null }
+};
+
+const RETURN_WINDOW_DAYS = 30;
+
+/* =========================================================
+   CORE LOGIC
+   - Order Status module   -> Michael (T6)
+   - Returns/Refunds module -> Victor (T7)
+   - Stock module           -> Sandisiwe (T8)
+   - Fallback copy          -> Ann (T10)
+   - Router                 -> Michael (T11)
+   ========================================================= */
+
+function daysBetween(a, b){
+  return Math.round((b - a) / 86400000);
+}
+
+function findOrderId(text){
+  const m = text.toUpperCase().match(/NR\d{3,5}/);
+  return m ? m[0] : null;
+}
+
+function handleOrderStatus(text){
+  const id = findOrderId(text);
+  if(!id || !ORDERS[id]){
+    return { text: `I couldn't find that order number. Order numbers look like "NR1042" — you can find yours in your confirmation email. If you'd like, share it again and I'll check right away.`, cls: 'route' };
+  }
+  const o = ORDERS[id];
+  let msg = `Order ${id} — ${o.item}\nStatus: ${o.status.toUpperCase()}\n`;
+  if(o.status === 'processing'){
+    msg += `Placed ${o.placed}. Estimated to ship by ${o.eta}. No tracking number yet — you'll get one by email as soon as it ships.`;
+  } else if(o.status === 'shipped'){
+    msg += `Shipped ${o.shipped} via ${o.carrier} (tracking: ${o.tracking}). Estimated delivery: ${o.eta}.`;
+  } else if(o.status === 'delivered'){
+    msg += `Delivered ${o.delivered} via ${o.carrier} (tracking: ${o.tracking}). If it hasn't actually arrived, let me know and I'll flag this for a human to investigate.`;
+  } else if(o.status === 'delayed'){
+    msg += `Currently delayed: ${o.note}. New estimated delivery: ${o.eta}. Sorry for the wait — we're monitoring this one.`;
+  } else if(o.status === 'cancelled'){
+    msg += o.note;
+  }
+  return { text: msg, cls: 'route' };
+}
+
+function handleReturns(text){
+  const id = findOrderId(text);
+  if(!id || !ORDERS[id]){
+    return { text: `To check your return/refund eligibility I need your order number (e.g. "NR1042") from your confirmation email. Once I have it I can tell you if it's within the return window and how to start the return.`, cls: 'refund' };
+  }
+  const o = ORDERS[id];
+  if(o.status !== 'delivered'){
+    return { text: `Order ${id} (${o.item}) is currently ${o.status} — it hasn't been delivered yet, so a return can't be started. Once it's delivered you'll have ${RETURN_WINDOW_DAYS} days to request a return.`, cls: 'refund' };
+  }
+  const deliveredDate = new Date(o.delivered);
+  const today = new Date('2026-08-16');
+  const daysSince = daysBetween(deliveredDate, today);
+  const eligible = daysSince <= RETURN_WINDOW_DAYS;
+  if(eligible){
+    const daysLeft = RETURN_WINDOW_DAYS - daysSince;
+    return { text: `Order ${id} (${o.item}) is eligible for return — delivered ${daysSince} day(s) ago, ${daysLeft} day(s) left in the ${RETURN_WINDOW_DAYS}-day window.\n\nHow to return: pack the item in its original packaging, use the prepaid label sent to your email, and drop it at any SpeedPost/SwiftLine point. Refunds are issued to your original payment method within 5–7 business days after we receive the item.`, cls: 'refund' };
+  }
+  return { text: `Order ${id} (${o.item}) was delivered ${daysSince} days ago, which is outside our ${RETURN_WINDOW_DAYS}-day return window. I can't auto-approve this one — I'm flagging it for a support agent to review for a possible exception. They'll follow up by email.`, cls: 'refund' };
+}
+
+function handleStock(text){
+  const t = text.toLowerCase();
+  const key = Object.keys(STOCK).find(k => t.includes(k));
+  if(!key){
+    return { text: `I couldn't match that to a product in our catalog demo. Try naming the product directly, e.g. "is the Trail Runner Sneakers back in stock" or "do you have the Coastal Rain Jacket in M".`, cls: 'stock' };
+  }
+  const product = STOCK[key];
+  const sizeMatch = t.match(/\bsize\s?(\w+)\b/) || t.match(/\bin\s(xs|s|m|l|xl|xxl|\d{1,2})\b/);
+  const requestedSize = sizeMatch ? sizeMatch[1].toLowerCase() : null;
+
+  if(requestedSize && product.sizes[requestedSize] !== undefined){
+    const qty = product.sizes[requestedSize];
+    if(qty > 0){
+      return { text: `${product.name}, size ${requestedSize.toUpperCase()}: IN STOCK (${qty} left).`, cls: 'stock' };
+    }
+    const restock = product.restockEta ? `Expected restock: ${product.restockEta}.` : `No restock date confirmed yet.`;
+    return { text: `${product.name}, size ${requestedSize.toUpperCase()}: OUT OF STOCK. ${restock} I can't set up notifications in this prototype, but the live version would offer a "notify me" option here.`, cls: 'stock' };
+  }
+
+  const sizeLines = Object.entries(product.sizes).map(([sz, qty]) => `  ${sz.toUpperCase()}: ${qty > 0 ? qty + ' in stock' : 'out of stock'}`).join('\n');
+  return { text: `${product.name} — availability by size:\n${sizeLines}`, cls: 'stock' };
+}
+
+function fallback(){
+  return { text: `I can help with order status, returns & refunds, or stock availability. I couldn't tell which one this is — could you rephrase, or use one of the quick options below? For anything else, reply "human" and I'll route this to Northstar's support team.`, cls: '' };
+}
+
+function routeMessage(raw){
+  const text = raw.toLowerCase();
+  if(/\bhuman\b|\bagent\b|\btalk to (a )?person\b/.test(text)){
+    return { text: `Got it — I'm flagging this for a Northstar support agent. In the live version this creates a ticket with our conversation attached so you don't have to repeat yourself.`, cls: '' };
+  }
+  const orderSignals = /\b(where|track|tracking|status|shipped|arrive|arrived|delivery|delivered)\b/;
+  const returnSignals = /\b(return|refund|exchange|money back|send back)\b/;
+  const stockSignals = /\b(stock|available|availability|size|restock|back in|do you have)\b/;
+
+  const hasOrderId = !!findOrderId(text);
+  const scores = {
+    returns: returnSignals.test(text) ? 2 : 0,
+    stock: stockSignals.test(text) ? 2 : 0,
+    order: (orderSignals.test(text) ? 2 : 0) + (hasOrderId && !returnSignals.test(text) && !stockSignals.test(text) ? 1 : 0)
+  };
+
+  const top = Object.entries(scores).sort((a,b) => b[1]-a[1])[0];
+  if(top[1] === 0) return fallback();
+  if(top[0] === 'order') return handleOrderStatus(text);
+  if(top[0] === 'returns') return handleReturns(text);
+  if(top[0] === 'stock') return handleStock(text);
+  return fallback();
+}
+
+/* =========================================================
+   UI WIRING — Sandisiwe (T9), fallback copy — Ann (T10)
+   ========================================================= */
+
+const thread = document.getElementById('thread');
+const form = document.getElementById('form');
+const input = document.getElementById('input');
+const quick = document.getElementById('quick');
+
+const quickReplies = [
+  "Where is order NR1042?",
+  "How do I return order NR1005?",
+  "Is the Trail Runner back in stock in size 9?",
+  "Refund status for NR1001",
+  "Talk to a human"
+];
+
+function addMessage(text, who, cls){
+  const div = document.createElement('div');
+  div.className = `msg ${who}${cls ? ' ' + cls : ''}`;
+  const label = document.createElement('span');
+  label.className = 'label';
+  label.textContent = who === 'user' ? 'You' : 'Northstar Assist';
+  div.appendChild(label);
+  div.appendChild(document.createTextNode(text));
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function flashPill(cls){
+  ['route','refund','stock'].forEach(c => document.getElementById('pill-' + c).classList.remove('active'));
+  if(cls) document.getElementById('pill-' + cls).classList.add('active');
+}
+
+function respond(userText){
+  addMessage(userText, 'user');
+  setTimeout(() => {
+    const result = routeMessage(userText);
+    addMessage(result.text, 'bot', result.cls);
+    flashPill(result.cls);
+  }, 250);
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const val = input.value.trim();
+  if(!val) return;
+  respond(val);
+  input.value = '';
+});
+
+quickReplies.forEach(q => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = q;
+  btn.addEventListener('click', () => respond(q));
+  quick.appendChild(btn);
+});
+
+addMessage(`Hi — I'm Northstar's support assistant. I can check order status, walk you through returns & refunds, or check stock availability. Try the quick options below, or type a question naturally.`, 'bot', '');
+</script>
+</body>
+</html>
